@@ -37,7 +37,7 @@ class PHASEAudioController: ObservableObject{
             print("Could not start PHASE engine")
         }
         
-        // Load sound to play (AudioAsset)
+
         let data = PHASEAudioController.generateSineWave(frequency: 441.0, duration:  20.0)
         let audioData = PHASEAudioController.convertBufferToData(buffer: data)
         let audioFormat = AVAudioFormat(standardFormatWithSampleRate: 44100.0, channels: 1)!
@@ -49,26 +49,15 @@ class PHASEAudioController: ObservableObject{
         } catch {
             print("Failed to register the sound asset: \(error.localizedDescription)")
         }
-        
-            // Comment section above and uncomment below forsound that is not monotous
-//        if let audioURL = Bundle.main.url(forResource: "eg_sound_short", withExtension: "mp3") {
-//          
-//            do {
-//                audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(url: audioURL,
-//                                                                              identifier: "sine_wave_sound",
-//                                                                              assetType: .resident,
-//                                                                              channelLayout: nil,
-//                                                                              normalizationMode: .dynamic)
-//                print("Successfully registered sound asset: \(audioAsset.identifier)")
-//            } catch {
-//                print("Failed to register the sound asset: \(error.localizedDescription)")
-//            }
-//            
-//        } else {
-//            print("Audio file 'eg_sound_short.mp3' not found in the bundle.")
-//        }
+
         // Create sound Source
-        soundSource = PHASESource(engine: phaseEngine)
+        let sphere = MDLMesh(sphereWithExtent: SIMD3<Float>(x: 0.2, y: 0.2, z: 0.2),
+                             segments:  vector_uint2(32,32),
+                             inwardNormals: false,
+                             geometryType: .triangles,
+                             allocator: nil)
+        let shape = PHASEShape(engine: phaseEngine, mesh: sphere)
+        soundSource = PHASESource(engine: phaseEngine, shapes: [shape])
         soundSourcePosition.translate(z:3.0)
         soundSource.transform = soundSourcePosition
         print(soundSourcePosition)
@@ -146,6 +135,40 @@ class PHASEAudioController: ObservableObject{
                                               assetIdentifier: soundEventAsset.identifier,
                                               mixerParameters: params)
         soundEvent.start(completion: nil)
+    }
+    
+    func setAudioAssetToSine(){
+        // Load sound to play (AudioAsset)
+        let data = PHASEAudioController.generateSineWave(frequency: 441.0, duration:  20.0)
+        let audioData = PHASEAudioController.convertBufferToData(buffer: data)
+        let audioFormat = AVAudioFormat(standardFormatWithSampleRate: 44100.0, channels: 1)!
+        do {
+            audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(data: audioData,
+                                                                          identifier: "sine_wave_sound",
+                                                                          format: audioFormat,
+                                                                          normalizationMode: .dynamic)
+        } catch {
+            print("Failed to register the sound asset: \(error.localizedDescription)")
+        }
+    }
+    
+    func setAudioAssetToSample(){
+        if let audioURL = Bundle.main.url(forResource: "eg_sound_short", withExtension: "mp3") {
+          
+            do {
+                audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(url: audioURL,
+                                                                              identifier: "sine_wave_sound",
+                                                                              assetType: .resident,
+                                                                              channelLayout: nil,
+                                                                              normalizationMode: .dynamic)
+                print("Successfully registered sound asset: \(audioAsset.identifier)")
+            } catch {
+                print("Failed to register the sound asset: \(error.localizedDescription)")
+            }
+            
+        } else {
+            print("Audio file 'eg_sound_short.mp3' not found in the bundle.")
+        }
     }
     
     static func generateSineWave(frequency: Float, duration: Float, sampleRate: Float = 44100.0) -> AVAudioPCMBuffer {

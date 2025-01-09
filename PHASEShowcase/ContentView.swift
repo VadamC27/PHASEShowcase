@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var z: Float = 3.0
     @State private var distance: Float = 5.0
     @State private var isEditing = false
+    @State private var audio = 0
     @EnvironmentObject private var phaseAudioController: PHASEAudioController
     var body: some View {
         VStack {
@@ -89,10 +90,12 @@ struct ContentView: View {
                // phaseAudioController.playSound()
             }.buttonStyle(.bordered)
             
-//            Button("Play") {
-//            }.buttonStyle(.borderedProminent).bold()
+//            Button("Change sample") {
+//            } .buttonStyle(.borderedProminent).bold()
             
             Text("Distance \(distance)")
+            
+            
         }.onAppear(){
             phaseAudioController.playSound()}
         .padding()
