@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct PHASEShowcaseApp: App {
+    @StateObject private var phaseAudioController = PHASEAudioController()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(phaseAudioController)
         }
     }
 }
