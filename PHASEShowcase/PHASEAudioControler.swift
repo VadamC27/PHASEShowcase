@@ -22,8 +22,9 @@ class PHASEAudioController: ObservableObject{
     init() {
         // Init PHASE Engine
         phaseEngine = PHASEEngine(updateMode: .automatic)
-        phaseEngine.defaultReverbPreset = .cathedral
-        
+        phaseEngine.defaultReverbPreset = .largeHall
+        phaseEngine.outputSpatializationMode = .automatic
+      
         // Set listener position to (0,0,0) in World space
         let origin: simd_float4x4 = matrix_identity_float4x4
         phaseListener = PHASEListener(engine: phaseEngine)
@@ -49,9 +50,26 @@ class PHASEAudioController: ObservableObject{
             print("Failed to register the sound asset: \(error.localizedDescription)")
         }
         
+            // Comment section above and uncomment below forsound that is not monotous
+//        if let audioURL = Bundle.main.url(forResource: "eg_sound_short", withExtension: "mp3") {
+//          
+//            do {
+//                audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(url: audioURL,
+//                                                                              identifier: "sine_wave_sound",
+//                                                                              assetType: .resident,
+//                                                                              channelLayout: nil,
+//                                                                              normalizationMode: .dynamic)
+//                print("Successfully registered sound asset: \(audioAsset.identifier)")
+//            } catch {
+//                print("Failed to register the sound asset: \(error.localizedDescription)")
+//            }
+//            
+//        } else {
+//            print("Audio file 'eg_sound_short.mp3' not found in the bundle.")
+//        }
         // Create sound Source
         soundSource = PHASESource(engine: phaseEngine)
-        soundSourcePosition.translate(z:5.0)
+        soundSourcePosition.translate(z:3.0)
         soundSource.transform = soundSourcePosition
         print(soundSourcePosition)
         do {
@@ -80,6 +98,34 @@ class PHASEAudioController: ObservableObject{
         } catch {
             print("Failed to register a sound event asset.")
             soundEventAsset = nil
+        }
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleInterruption),
+                                               name: AVAudioSession.interruptionNotification,
+                                               object: nil)
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    /** Function needed for handling interuptions in sound playing - like turining off music or resuming AudioEngine work after notifcation*/
+    @objc private func handleInterruption(notification: Notification) {
+        if let userInfo = notification.userInfo,
+           let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+           let type = AVAudioSession.InterruptionType(rawValue: typeValue) {
+            switch type {
+            case .began:
+                break
+            case .ended:
+                if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
+                    let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                    if options.contains(.shouldResume) {
+                    }
+                }
+            default:
+                break
+            }
         }
     }
     

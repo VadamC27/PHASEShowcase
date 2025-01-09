@@ -10,11 +10,13 @@ import SwiftUI
 struct ContentView: View {
     @State private var x: Float = 0.0
     @State private var y: Float = 0.0
-    @State private var z: Float = 5.0
+    @State private var z: Float = 3.0
+    @State private var distance: Float = 5.0
     @State private var isEditing = false
     @EnvironmentObject private var phaseAudioController: PHASEAudioController
     var body: some View {
         VStack {
+            
             
             Image(systemName: "cube")
                 .imageScale(.large)
@@ -87,16 +89,32 @@ struct ContentView: View {
                // phaseAudioController.playSound()
             }.buttonStyle(.bordered)
             
-            Button("Play") {
-            }.buttonStyle(.borderedProminent).bold()
+//            Button("Play") {
+//            }.buttonStyle(.borderedProminent).bold()
+            
+            Text("Distance \(distance)")
         }.onAppear(){
             phaseAudioController.playSound()}
         .padding()
+        .onChange(of:x){
+            updatePosition()
+        }
+        .onChange(of:y){
+            updatePosition()
+        }
+        .onChange(of:z){
+            updatePosition()
+        }
 
     }
     
     func updatePosition(){
         phaseAudioController.updateAudioPlayerPositon(x:x, y:y, z:z)
+        calculateDistance()
+    }
+    
+    func calculateDistance(){
+        distance = pow(x*x + y*y + z*z,1/2)
     }
 }
 
