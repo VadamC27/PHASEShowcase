@@ -26,6 +26,7 @@ class PHASEAudioController: ObservableObject{
         do {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .default, options: [])
+
             try session.setActive(true)
         } catch {
             print("Failed to configure AVAudioSession: \(error.localizedDescription)")

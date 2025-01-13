@@ -2,11 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>LSMinimumSystemVersion</key>
-	<string>18</string>
-	<key>com.apple.developer.coremotion.head-pose</key>
-	<true/>
-	<key>com.apple.developer.spatial-audio.profile-access </key>
+	<key>com.apple.developer.media-device-discovery-extension</key>
 	<true/>
 </dict>
 </plist>
