@@ -18,17 +18,28 @@ class PHASEAudioController: ObservableObject{
         spatialPipeline: PHASESpatialPipeline(
             flags: [.directPathTransmission,  ])!
     )
-
+    
+    private let rolloffFactor = 2.0
+    private let frequency: Float = 440.0
+    
     init() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default, options: [])
+            try session.setActive(true)
+        } catch {
+            print("Failed to configure AVAudioSession: \(error.localizedDescription)")
+        }
         // Init PHASE Engine
         phaseEngine = PHASEEngine(updateMode: .automatic)
         phaseEngine.defaultReverbPreset = .largeHall
         phaseEngine.outputSpatializationMode = .alwaysUseChannelBased
-      
+        
         // Set listener position to (0,0,0) in World space
         let origin: simd_float4x4 = matrix_identity_float4x4
         phaseListener = PHASEListener(engine: phaseEngine)
         phaseListener.transform = origin
+        phaseListener.automaticHeadTrackingFlags = .orientation
         try! self.phaseEngine.rootObject.addChild(self.phaseListener)
         do{
             try self.phaseEngine.start();
@@ -38,7 +49,7 @@ class PHASEAudioController: ObservableObject{
         }
         
 
-        let data = PHASEAudioController.generateSineWave(frequency: 441.0, duration:  200.0)
+        let data = PHASEAudioController.generateSineWave(frequency: frequency, duration:  200.0)
         let audioData = PHASEAudioController.convertBufferToData(buffer: data)
         let audioFormat = AVAudioFormat(standardFormatWithSampleRate: 44100.0, channels: 1)!
         do {
@@ -67,7 +78,7 @@ class PHASEAudioController: ObservableObject{
         
         // Prepare model
         let simpleModel = PHASEGeometricSpreadingDistanceModelParameters()
-        simpleModel.rolloffFactor = 1.0
+        simpleModel.rolloffFactor = rolloffFactor
         soundPipeline.distanceModelParameters = simpleModel
         
         let samplerNode = PHASESamplerNodeDefinition(
@@ -85,6 +96,7 @@ class PHASEAudioController: ObservableObject{
             print("Failed to register a sound event asset.")
             soundEventAsset = nil
         }
+
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(handleInterruption),
                                                name: AVAudioSession.interruptionNotification,
@@ -114,6 +126,7 @@ class PHASEAudioController: ObservableObject{
             }
         }
     }
+    
     /**
            Create new PHASESoundSource with spherical shape be setting axis length
      */
@@ -199,6 +212,13 @@ class PHASEAudioController: ObservableObject{
             print("Audio file 'eg_sound_short.mp3' not found in the bundle.")
         }
     }
+    
+//    func editModel(_ rolloffFactor: Double){
+//        let simpleModel = PHASEGeometricSpreadingDistanceModelParameters()
+//        simpleModel.rolloffFactor = rolloffFactor
+//        soundPipeline.distanceModelParameters = simpleModel
+//        
+//    }
     
     /**
          Creates sine wave and saves it to AVAudiouffer

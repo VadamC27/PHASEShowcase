@@ -19,6 +19,7 @@ struct ContentView: View {
     @State private var radius: Float = 0.5
     @State private var distanceClosest: Float = 4.5
     @State private var insideOfSphere: Bool = false
+    @State private var rolloffFactor: Double = 2.0
     @EnvironmentObject private var phaseAudioController: PHASEAudioController
 
     var body: some View {
@@ -83,10 +84,10 @@ struct ContentView: View {
                 updatePosition()
             }
             HStack{
-                Button("Center") {
+                Button("Reset") {
                     x = 0
                     y = 0
-                    z = 5
+                    z = 3
                     updatePosition()
                 }.buttonStyle(.bordered)
                 Button("Random") {
@@ -96,7 +97,14 @@ struct ContentView: View {
                     updatePosition()
                     // phaseAudioController.playSound()
                 }.buttonStyle(.bordered)
+                Button("(0,0,0) ") {
+                    x = 0
+                    y = 0
+                    z = 0
+                    updatePosition()
+                }.buttonStyle(.bordered)
             }
+            Text("Warning! Small objects when listener is inside them create VERY unpleasant sound, use (0,0,0) with caution.").foregroundStyle(Color.red).multilineTextAlignment(.center)
 
             //DEBUG TEXTS
             Spacer()
@@ -104,14 +112,16 @@ struct ContentView: View {
             Text("Distance from closest point in sphere \(String(format: "%.2f",distanceClosest))m")
             if insideOfSphere {
                 Text("Listener inside of sphere").foregroundStyle(Color.red)
+            }else {
+                Text("\t")
             }
-            Text("Sphere Radius \(String(format: "%.2f",radius))m")
+
             
             // SLIDER SPHERE RADIUS
             Spacer()
-            Text("Sphere Radius")
+            Text("Sphere Radius \(String(format: "%.2f",radius))m")
             Slider(value: $radius,
-                   in: 0.1...10.0,
+                   in: 0.1...10.1,
                    step: 0.1){
                 Text("Axis length")
             } minimumValueLabel: {
@@ -125,6 +135,24 @@ struct ContentView: View {
                 }
             }
             Spacer()
+//       
+//            Text("Rolloff factor \(String(format: "%.2f",radius))m")
+//            Slider(value: $rolloffFactor,
+//                   in: 0.1...10.1,
+//                   step: 0.1){
+//                Text("rolloffFactor")
+//            } minimumValueLabel: {
+//                Text("0.1")
+//            } maximumValueLabel: {
+//                Text("10.0")
+//            } onEditingChanged: { editing in
+//                if !editing {
+//                    print("Finished editing rolloffFactor: \(rolloffFactor)")
+//                    phaseAudioController.editModel(rolloffFactor)
+//                }
+//            }
+//            Spacer()
+//            
             
         }.onAppear(){
             phaseAudioController.playSound()
