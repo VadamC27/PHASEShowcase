@@ -16,7 +16,7 @@ class PHASEAudioController: ObservableObject{
     private var soundEventAsset: PHASESoundEventNodeAsset?
     private let soundPipeline = PHASESpatialMixerDefinition(
         spatialPipeline: PHASESpatialPipeline(
-            flags: [.directPathTransmission,  ])!
+            flags: [.directPathTransmission, .lateReverb])!
     )
     
     private let rolloffFactor = 2.0
@@ -33,7 +33,7 @@ class PHASEAudioController: ObservableObject{
         }
         // Init PHASE Engine
         phaseEngine = PHASEEngine(updateMode: .automatic)
-        phaseEngine.defaultReverbPreset = .largeHall
+        phaseEngine.defaultReverbPreset = .mediumHall
         phaseEngine.outputSpatializationMode = .alwaysUseChannelBased
         
         // Set listener position to (0,0,0) in World space
@@ -50,18 +50,33 @@ class PHASEAudioController: ObservableObject{
         }
         
 
-        let data = PHASEAudioController.generateSineWave(frequency: frequency, duration:  200.0)
-        let audioData = PHASEAudioController.convertBufferToData(buffer: data)
-        let audioFormat = AVAudioFormat(standardFormatWithSampleRate: 44100.0, channels: 1)!
-        do {
-            audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(data: audioData,
-                                                                          identifier: "sine_wave_sound",
-                                                                          format: audioFormat,
-                                                                          normalizationMode: .dynamic)
-        } catch {
-            print("Failed to register the sound asset: \(error.localizedDescription)")
+//        let data = PHASEAudioController.generateSineWave(frequency: frequency, duration:  200.0)
+//        let audioData = PHASEAudioController.convertBufferToData(buffer: data)
+//        let audioFormat = AVAudioFormat(standardFormatWithSampleRate: 44100.0, channels: 1)!
+//        do {
+//            audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(data: audioData,
+//                                                                          identifier: "sine_wave_sound",
+//                                                                          format: audioFormat,
+//                                                                          normalizationMode: .dynamic)
+//        } catch {
+//            print("Failed to register the sound asset: \(error.localizedDescription)")
+//        }
+        if let audioURL = Bundle.main.url(forResource: "piano", withExtension: "wav") {
+          
+            do {
+                audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(url: audioURL,
+                                                                              identifier: "sine_wave_sound",
+                                                                              assetType: .resident,
+                                                                              channelLayout: nil,
+                                                                              normalizationMode: .dynamic)
+                print("Successfully registered sound asset: \(audioAsset.identifier)")
+            } catch {
+                print("Failed to register the sound asset: \(error.localizedDescription)")
+            }
+            
+        } else {
+            print("Audio file 'eg_sound_short.mp3' not found in the bundle.")
         }
-
         // Create sound Source
         // Sphere promień 0.5
         soundSourcePosition.translate(z:3.0)
@@ -196,7 +211,7 @@ class PHASEAudioController: ObservableObject{
      */
     func setAudioAssetToSample(){
         
-        if let audioURL = Bundle.main.url(forResource: "eg_sound_short", withExtension: "mp3") {
+        if let audioURL = Bundle.main.url(forResource: "piano", withExtension: "wav") {
           
             do {
                 audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(url: audioURL,
@@ -258,4 +273,16 @@ class PHASEAudioController: ObservableObject{
         return audioData
     }
 
+    func switchReverbProfile(_ reverbPreset: PHASEReverbPreset) {
+        phaseEngine.stop()
+        phaseEngine.defaultReverbPreset = .cathedral
+        do{
+            try phaseEngine.start()
+        }
+        catch {
+            print("error")
+        }
+        playSound()
+        
+    }
 }

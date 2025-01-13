@@ -7,7 +7,6 @@
 
 import SwiftUI
 import PHASE
-import RealityKit
 
 struct ContentView: View {
     @State private var x: Float = 0.0
@@ -16,10 +15,11 @@ struct ContentView: View {
     @State private var distance: Float = 5.0
     @State private var isEditing = false
     @State private var audio = 0
-    @State private var radius: Float = 0.5
+    @State private var radius: Float = 0.75
     @State private var distanceClosest: Float = 4.5
     @State private var insideOfSphere: Bool = false
     @State private var rolloffFactor: Double = 2.0
+    @State private var selectedReverbPreset: PHASEReverbPreset = .mediumHall
     @EnvironmentObject private var phaseAudioController: PHASEAudioController
 
     var body: some View {
@@ -152,11 +152,24 @@ struct ContentView: View {
 //                }
 //            }
 //            Spacer()
-//            
+//            B
+            Text("Select Reverb Preset") .font(.subheadline)
+                        
+            Picker("Reverb Preset", selection: $selectedReverbPreset) {
+                ForEach(PHASEReverbPreset.allCases, id: \.self) { preset in
+                    Text(preset.displayName).tag(preset)
+                }
+            }
+            .pickerStyle(MenuPickerStyle()) // Dropdown menu
+            .onChange(of: selectedReverbPreset) { _, newValue in
+                phaseAudioController.switchReverbProfile(newValue)
+            }
             
+            Text("Not fully implemneted yet")
         }.onAppear(){
             phaseAudioController.playSound()
             distanceClosest = distance - radius
+            phaseAudioController.switchSoundSphereObject(radius)
         }
         .padding()
         .onChange(of:x){
