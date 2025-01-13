@@ -11,19 +11,19 @@ class PHASEAudioController: ObservableObject{
     private var audioAsset: PHASESoundAsset!
     private let phaseEngine: PHASEEngine
     private let params = PHASEMixerParameters()
-    private let soundSource: PHASESource
+    private var soundSource: PHASESource
     private var phaseListener:  PHASEListener!
     private var soundEventAsset: PHASESoundEventNodeAsset?
     private let soundPipeline = PHASESpatialMixerDefinition(
         spatialPipeline: PHASESpatialPipeline(
-            flags: .directPathTransmission)!
+            flags: [.directPathTransmission,  ])!
     )
 
     init() {
         // Init PHASE Engine
         phaseEngine = PHASEEngine(updateMode: .automatic)
         phaseEngine.defaultReverbPreset = .largeHall
-        phaseEngine.outputSpatializationMode = .automatic
+        phaseEngine.outputSpatializationMode = .alwaysUseChannelBased
       
         // Set listener position to (0,0,0) in World space
         let origin: simd_float4x4 = matrix_identity_float4x4
@@ -38,7 +38,7 @@ class PHASEAudioController: ObservableObject{
         }
         
 
-        let data = PHASEAudioController.generateSineWave(frequency: 441.0, duration:  20.0)
+        let data = PHASEAudioController.generateSineWave(frequency: 441.0, duration:  200.0)
         let audioData = PHASEAudioController.convertBufferToData(buffer: data)
         let audioFormat = AVAudioFormat(standardFormatWithSampleRate: 44100.0, channels: 1)!
         do {
@@ -51,18 +51,15 @@ class PHASEAudioController: ObservableObject{
         }
 
         // Create sound Source
-        let sphere = MDLMesh(sphereWithExtent: SIMD3<Float>(x: 0.2, y: 0.2, z: 0.2),
-                             segments:  vector_uint2(32,32),
-                             inwardNormals: false,
-                             geometryType: .triangles,
-                             allocator: nil)
+        // Sphere promień 0.5
+        soundSourcePosition.translate(z:3.0)
+        let sphere = MDLMesh.newEllipsoid(withRadii: vector_float3(0.1,0.1,0.1), radialSegments: 14, verticalSegments: 14, geometryType: MDLGeometryType.triangles, inwardNormals: false, hemisphere: false, allocator: nil)
         let shape = PHASEShape(engine: phaseEngine, mesh: sphere)
         soundSource = PHASESource(engine: phaseEngine, shapes: [shape])
-        soundSourcePosition.translate(z:3.0)
         soundSource.transform = soundSourcePosition
         print(soundSourcePosition)
         do {
-            try phaseEngine.rootObject.addChild(soundSource)
+            try phaseEngine.rootObject.addChild(soundSource) // Attach source to engine
         }
         catch {
             print ("Failed to add a child object to the scene.")
@@ -117,14 +114,39 @@ class PHASEAudioController: ObservableObject{
             }
         }
     }
-    
-    
+    /**
+           Create new PHASESoundSource with spherical shape be setting axis length
+     */
+    func switchSoundSphereObject(_ axis: Float){
+        phaseEngine.rootObject.removeChild(soundSource) // Remove previous object from engine
+        
+        //Create new SPHERE
+        let sphere = MDLMesh.newEllipsoid(withRadii: vector_float3(axis,axis,axis), radialSegments: 14, verticalSegments: 14, geometryType: MDLGeometryType.triangles, inwardNormals: false, hemisphere: false, allocator: nil)
+        let shape = PHASEShape(engine: phaseEngine, mesh: sphere)
+        soundSource = PHASESource(engine: phaseEngine, shapes: [shape])
+        
+        soundSource.transform = soundSourcePosition
+        print("Changing sphere")
+        do {
+            try phaseEngine.rootObject.addChild(soundSource)
+        }
+        catch {
+        }
+        
+        playSound()
+    }
+    /**
+            Updates sound source transformation with x,y,z position in 3D space
+     */
     func updateAudioPlayerPositon(x: Float = 0, y: Float = 0, z: Float = 0){
         soundSourcePosition.setPosition(x:x, y:y, z:z)
         soundSource.transform = soundSourcePosition
     }
-    
+    /**
+            Play sound in spatial space with currently set audio settings
+     */
     func playSound(){
+        // Fire new sound event with currently set properties
         guard let soundEventAsset else { return }
         
         params.addSpatialMixerParameters(
@@ -135,8 +157,11 @@ class PHASEAudioController: ObservableObject{
                                               assetIdentifier: soundEventAsset.identifier,
                                               mixerParameters: params)
         soundEvent.start(completion: nil)
-    }
     
+    }
+    /**
+         Creates audio asset with sine wave
+     */
     func setAudioAssetToSine(){
         // Load sound to play (AudioAsset)
         let data = PHASEAudioController.generateSineWave(frequency: 441.0, duration:  20.0)
@@ -152,7 +177,11 @@ class PHASEAudioController: ObservableObject{
         }
     }
     
+    /**
+         Creates audio asset with ready audio sample
+     */
     func setAudioAssetToSample(){
+        
         if let audioURL = Bundle.main.url(forResource: "eg_sound_short", withExtension: "mp3") {
           
             do {
@@ -171,7 +200,10 @@ class PHASEAudioController: ObservableObject{
         }
     }
     
-    static func generateSineWave(frequency: Float, duration: Float, sampleRate: Float = 44100.0) -> AVAudioPCMBuffer {
+    /**
+         Creates sine wave and saves it to AVAudiouffer
+     */
+    private static func generateSineWave(frequency: Float, duration: Float, sampleRate: Float = 44100.0) -> AVAudioPCMBuffer {
         let totalSamples = Int(sampleRate * duration)
         let amplitude: Float = 0.5
 
@@ -186,7 +218,9 @@ class PHASEAudioController: ObservableObject{
         
         return buffer
     }
-    
+    /**
+         Transforms AVAudioBuffer to Data Type
+     */
     static func convertBufferToData(buffer: AVAudioPCMBuffer) -> Data {
         guard let floatChannelData = buffer.floatChannelData else {
             fatalError("Buffer has no floatChannelData.")
