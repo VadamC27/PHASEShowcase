@@ -275,7 +275,7 @@ class PHASEAudioController: ObservableObject{
 
     func switchReverbProfile(_ reverbPreset: PHASEReverbPreset) {
         phaseEngine.stop()
-        phaseEngine.defaultReverbPreset = .cathedral
+        phaseEngine.defaultReverbPreset = reverbPreset
         do{
             try phaseEngine.start()
         }
