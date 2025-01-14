@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct PHASEShowcaseApp: App {
-    @StateObject private var phaseAudioController = PHASEAudioController()
+    @StateObject private var phaseAudioController = AVEnvironmentAudioController()
     //ENTRY POINT
     var body: some Scene {
         WindowGroup {

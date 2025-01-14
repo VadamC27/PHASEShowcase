@@ -20,7 +20,7 @@ struct ContentView: View {
     @State private var insideOfSphere: Bool = false
     @State private var rolloffFactor: Double = 2.0
     @State private var selectedReverbPreset: PHASEReverbPreset = .mediumHall
-    @EnvironmentObject private var phaseAudioController: PHASEAudioController
+    @EnvironmentObject private var phaseAudioController: AVEnvironmentAudioController
 
     var body: some View {
         VStack {
@@ -131,7 +131,7 @@ struct ContentView: View {
             } onEditingChanged: { editing in
                 if !editing {
                     print("Finished editing Sphere radius: \(radius)")
-                    phaseAudioController.switchSoundSphereObject(radius)
+                    //phaseAudioController.switchSoundSphereObject(radius)
                 }
             }
             Spacer()
@@ -162,14 +162,14 @@ struct ContentView: View {
             }
             .pickerStyle(MenuPickerStyle()) // Dropdown menu
             .onChange(of: selectedReverbPreset) { _, newValue in
-                phaseAudioController.switchReverbProfile(newValue)
+               // phaseAudioController.switchReverbProfile(newValue)
             }
             
             Text("Not fully implemneted yet")
         }.onAppear(){
             phaseAudioController.playSound()
             distanceClosest = distance - radius
-            phaseAudioController.switchSoundSphereObject(radius)
+                //phaseAudioController.switchSoundSphereObject(radius)
         }
         .padding()
         .onChange(of:x){
@@ -188,7 +188,7 @@ struct ContentView: View {
     }
     
     func updatePosition(){
-        phaseAudioController.updateAudioPlayerPositon(x:x, y:y, z:z)
+        phaseAudioController.updateSoundSourcePosition(x:x, y:y, z:z)
         calculateDistance()
     }
     

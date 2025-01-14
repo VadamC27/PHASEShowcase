@@ -23,7 +23,6 @@ extension PHASEReverbPreset: @retroactive CaseIterable {
         case .largeHall: return "Large Hall"
         case .largeRoom2: return "Large Room 2"
         case .largeHall2: return "Large Hall 2"
-
         case .mediumChamber: return "Medium Chamber"
         case .largeChamber: return "Large Chamber"
         case .cathedral: return "Cathedral"
