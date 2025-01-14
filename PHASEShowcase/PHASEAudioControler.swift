@@ -50,33 +50,33 @@ class PHASEAudioController: ObservableObject{
         }
         
 
-        let data = PHASEAudioController.generateSineWave(frequency: frequency, duration:  200.0)
-        let audioData = PHASEAudioController.convertBufferToData(buffer: data)
-        let audioFormat = AVAudioFormat(standardFormatWithSampleRate: 44100.0, channels: 1)!
-        do {
-            audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(data: audioData,
-                                                                          identifier: "sine_wave_sound",
-                                                                          format: audioFormat,
-                                                                          normalizationMode: .dynamic)
-        } catch {
-            print("Failed to register the sound asset: \(error.localizedDescription)")
-        }
-//        if let audioURL = Bundle.main.url(forResource: "piano", withExtension: "wav") {
-//          
-//            do {
-//                audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(url: audioURL,
-//                                                                              identifier: "sine_wave_sound",
-//                                                                              assetType: .resident,
-//                                                                              channelLayout: nil,
-//                                                                              normalizationMode: .dynamic)
-//                print("Successfully registered sound asset: \(audioAsset.identifier)")
-//            } catch {
-//                print("Failed to register the sound asset: \(error.localizedDescription)")
-//            }
-//            
-//        } else {
-//            print("Audio file 'eg_sound_short.mp3' not found in the bundle.")
+//        let data = PHASEAudioController.generateSineWave(frequency: frequency, duration:  200.0)
+//        let audioData = PHASEAudioController.convertBufferToData(buffer: data)
+//        let audioFormat = AVAudioFormat(standardFormatWithSampleRate: 44100.0, channels: 1)!
+//        do {
+//            audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(data: audioData,
+//                                                                          identifier: "sine_wave_sound",
+//                                                                          format: audioFormat,
+//                                                                          normalizationMode: .dynamic)
+//        } catch {
+//            print("Failed to register the sound asset: \(error.localizedDescription)")
 //        }
+        if let audioURL = Bundle.main.url(forResource: "piano", withExtension: "wav") {
+          
+            do {
+                audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(url: audioURL,
+                                                                              identifier: "sine_wave_sound",
+                                                                              assetType: .resident,
+                                                                              channelLayout: nil,
+                                                                              normalizationMode: .dynamic)
+                print("Successfully registered sound asset: \(audioAsset.identifier)")
+            } catch {
+                print("Failed to register the sound asset: \(error.localizedDescription)")
+            }
+            
+        } else {
+            print("Audio file 'piano.wav' not found in the bundle.")
+        }
         // Create sound Source
         // Sphere promień 0.5
         soundSourcePosition.translate(z:3.0)
