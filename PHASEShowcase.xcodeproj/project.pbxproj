@@ -6,27 +6,18 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXFileReference section */
-		24563C622D2FED0A000F0919 /* PHASEShowcase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PHASEShowcase.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		249FEE052D3550BF00D3CD99 /* PHASEShowcase copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "PHASEShowcase copy-Info.plist"; path = "/Users/adam_czyzak/Sources/swiftTestApp/PHASEShowcase/PHASEShowcase copy-Info.plist"; sourceTree = "<absolute>"; };
-/* End PBXFileReference section */
+/* Begin PBXBuildFile section */
+		241EB7932D6898B1008B036D /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 241EB7842D6898B1008B036D /* README.md */; };
+/* End PBXBuildFile section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		24F6CE082D3533570055FC65 /* Exceptions for "PHASEShowcase" folder in "PHASEShowcase" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 24563C612D2FED0A000F0919 /* PHASEShowcase */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+/* Begin PBXFileReference section */
+		241EB7842D6898B1008B036D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		24563C622D2FED0A000F0919 /* PHASEShowcase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PHASEShowcase.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		24563C642D2FED0A000F0919 /* PHASEShowcase */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				24F6CE082D3533570055FC65 /* Exceptions for "PHASEShowcase" folder in "PHASEShowcase" target */,
-			);
 			path = PHASEShowcase;
 			sourceTree = "<group>";
 		};
@@ -47,7 +38,7 @@
 			isa = PBXGroup;
 			children = (
 				24563C642D2FED0A000F0919 /* PHASEShowcase */,
-				249FEE052D3550BF00D3CD99 /* PHASEShowcase copy-Info.plist */,
+				241EB7842D6898B1008B036D /* README.md */,
 				24563C632D2FED0A000F0919 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -128,6 +119,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				241EB7932D6898B1008B036D /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -268,14 +260,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = PHASEShowcase/PHASEShowcase.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"PHASEShowcase/Preview Content\"";
 				DEVELOPMENT_TEAM = PVS5F6GNMT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PHASEShowcase/Info.plist;
+				INFOPLIST_FILE = "";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Requieres Camera to function";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -301,14 +292,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = PHASEShowcase/PHASEShowcase.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"PHASEShowcase/Preview Content\"";
 				DEVELOPMENT_TEAM = PVS5F6GNMT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PHASEShowcase/Info.plist;
+				INFOPLIST_FILE = "";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Requieres Camera to function";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

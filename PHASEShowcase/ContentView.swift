@@ -7,8 +7,10 @@
 
 import SwiftUI
 import PHASE
+import os
 
 struct ContentView: View {
+    private let logger = Logger()
     @State private var x: Float = 0.0
     @State private var y: Float = 0.0
     @State private var z: Float = 3.0
@@ -24,7 +26,6 @@ struct ContentView: View {
 
     var body: some View {
         VStack {
-            
             // HEADER
             Spacer()
             Image(systemName: "cube")
@@ -45,7 +46,7 @@ struct ContentView: View {
                 Text("10.0m")
             } onEditingChanged: { editing in
                 if !editing {
-                    print("Finished editing X: \(x)")
+                    logger.debug("Finished editing X: \(x)")
                    
                 }
                 updatePosition()
@@ -62,8 +63,7 @@ struct ContentView: View {
                 Text("10.0m")
             } onEditingChanged: { editing in
                 if !editing {
-                    print("Finished editing Y: \(y)")
-              
+                    logger.debug("Finished editing Y: \(y)")
                 }
                 updatePosition()
             }
@@ -79,8 +79,7 @@ struct ContentView: View {
                 Text("20.0m")
             } onEditingChanged: { editing in
                 if !editing {
-                    print("Finished editing Z: \(z)")
-                  
+                    logger.debug("Finished editing Z: \(z)")
                 }
                 updatePosition()
             }
@@ -96,7 +95,6 @@ struct ContentView: View {
                     y = Float.random(in:-10..<10)
                     z = Float.random(in:-10..<10)
                     updatePosition()
-                    // phaseAudioController.playSound()
                 }.buttonStyle(.bordered)
                 Button("(0,0,0) ") {
                     x = 0
@@ -105,7 +103,7 @@ struct ContentView: View {
                     updatePosition()
                 }.buttonStyle(.bordered)
             }
-            Text("Warning! Small objects when listener is inside them create VERY unpleasant sound, use (0,0,0) with caution.").foregroundStyle(Color.red).multilineTextAlignment(.center)
+            Text("Warning! Small objects when listener is inside them might create VERY unpleasant sound, use (0,0,0) with caution.").foregroundStyle(Color.red).multilineTextAlignment(.center)
 
             //DEBUG TEXTS
             Spacer()
@@ -131,29 +129,11 @@ struct ContentView: View {
                 Text("10.0m")
             } onEditingChanged: { editing in
                 if !editing {
-                    print("Finished editing Sphere radius: \(radius)")
-                    //phaseAudioController.switchSoundSphereObject(radius)
+                    logger.debug("Finished editing Sphere radius: \(radius)")
                 }
             }
             Spacer()
-//       
-//            Text("Rolloff factor \(String(format: "%.2f",radius))m")
-//            Slider(value: $rolloffFactor,
-//                   in: 0.1...10.1,
-//                   step: 0.1){
-//                Text("rolloffFactor")
-//            } minimumValueLabel: {
-//                Text("0.1")
-//            } maximumValueLabel: {
-//                Text("10.0")
-//            } onEditingChanged: { editing in
-//                if !editing {
-//                    print("Finished editing rolloffFactor: \(rolloffFactor)")
-//                    phaseAudioController.editModel(rolloffFactor)
-//                }
-//            }
-//            Spacer()
-//            B
+
             Text("Select Reverb Preset") .font(.subheadline)
                         
             Picker("Reverb Preset", selection: $selectedReverbPreset) {
@@ -166,7 +146,6 @@ struct ContentView: View {
                phaseAudioController.switchReverbProfile(newValue)
             }
             
-            Text("Not fully implemneted yet")
         }.onAppear(){
             phaseAudioController.playSound()
             distanceClosest = distance - radius

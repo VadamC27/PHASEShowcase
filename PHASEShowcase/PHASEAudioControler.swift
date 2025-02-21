@@ -5,6 +5,7 @@
 //  Created by Adam Czyżak on 09/01/2025.
 //
 import PHASE
+import os // only for Logger
 
 class PHASEAudioController: ObservableObject{
     private var soundSourcePosition: simd_float4x4 = matrix_identity_float4x4
@@ -14,11 +15,17 @@ class PHASEAudioController: ObservableObject{
     private var soundSource: PHASESource
     private var phaseListener:  PHASEListener!
     private var soundEventAsset: PHASESoundEventNodeAsset?
+    
     private let soundPipeline = PHASESpatialMixerDefinition(
         spatialPipeline: PHASESpatialPipeline(
-            flags: [.directPathTransmission, .lateReverb])!
+            flags: [
+                .directPathTransmission,
+                .lateReverb,
+                .earlyReflections
+            ])!
     )
     
+    private let logger = Logger()
     private let rolloffFactor = 2.0
     private let frequency: Float = 440.0
     
@@ -29,7 +36,7 @@ class PHASEAudioController: ObservableObject{
 
             try session.setActive(true)
         } catch {
-            print("Failed to configure AVAudioSession: \(error.localizedDescription)")
+            logger.critical("Failed to configure AVAudioSession: \(error.localizedDescription)")
         }
         // Init PHASE Engine
         phaseEngine = PHASEEngine(updateMode: .automatic)
@@ -41,26 +48,16 @@ class PHASEAudioController: ObservableObject{
         phaseListener = PHASEListener(engine: phaseEngine)
         phaseListener.transform = origin
         phaseListener.automaticHeadTrackingFlags = .orientation
+        
         try! self.phaseEngine.rootObject.addChild(self.phaseListener)
         do{
             try self.phaseEngine.start();
         }
         catch {
-            print("Could not start PHASE engine")
+            logger.critical("Could not start PHASE engine")
         }
         
 
-//        let data = PHASEAudioController.generateSineWave(frequency: frequency, duration:  200.0)
-//        let audioData = PHASEAudioController.convertBufferToData(buffer: data)
-//        let audioFormat = AVAudioFormat(standardFormatWithSampleRate: 44100.0, channels: 1)!
-//        do {
-//            audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(data: audioData,
-//                                                                          identifier: "sine_wave_sound",
-//                                                                          format: audioFormat,
-//                                                                          normalizationMode: .dynamic)
-//        } catch {
-//            print("Failed to register the sound asset: \(error.localizedDescription)")
-//        }
         if let audioURL = Bundle.main.url(forResource: "piano", withExtension: "wav") {
           
             do {
@@ -69,32 +66,37 @@ class PHASEAudioController: ObservableObject{
                                                                               assetType: .resident,
                                                                               channelLayout: nil,
                                                                               normalizationMode: .dynamic)
-                print("Successfully registered sound asset: \(audioAsset.identifier)")
+                let identifier = audioAsset.identifier
+                logger.debug("Successfully registered sound asset: \(identifier)")
             } catch {
-                print("Failed to register the sound asset: \(error.localizedDescription)")
+                logger.critical("Failed to register the sound asset: \(error.localizedDescription)")
             }
-            
         } else {
-            print("Audio file 'piano.wav' not found in the bundle.")
+            logger.critical("Audio file 'piano.mp3' not found in the bundle.")
+            
         }
+        
         // Create sound Source
-        // Sphere promień 0.5
+        // Sphere radius 0.1
         soundSourcePosition.translate(z:3.0)
         let sphere = MDLMesh.newEllipsoid(withRadii: vector_float3(0.1,0.1,0.1), radialSegments: 14, verticalSegments: 14, geometryType: MDLGeometryType.triangles, inwardNormals: false, hemisphere: false, allocator: nil)
         let shape = PHASEShape(engine: phaseEngine, mesh: sphere)
         soundSource = PHASESource(engine: phaseEngine, shapes: [shape])
         soundSource.transform = soundSourcePosition
-        print(soundSourcePosition)
+        
+        logger.debug("\(self.soundSourcePosition.debugDescription)")
+        
         do {
             try phaseEngine.rootObject.addChild(soundSource) // Attach source to engine
         }
         catch {
-            print ("Failed to add a child object to the scene.")
+            logger.critical("Failed to add a child object to the scene.")
         }
         
         // Prepare model
         let simpleModel = PHASEGeometricSpreadingDistanceModelParameters()
-        simpleModel.rolloffFactor = rolloffFactor
+        simpleModel.rolloffFactor = 0.3
+        simpleModel.fadeOutParameters = PHASEDistanceModelFadeOutParameters(cullDistance: 16)
         soundPipeline.distanceModelParameters = simpleModel
         
         let samplerNode = PHASESamplerNodeDefinition(
@@ -102,14 +104,14 @@ class PHASEAudioController: ObservableObject{
             mixerDefinition: soundPipeline,
             identifier: audioAsset.identifier + "_SamplerNode")
         samplerNode.playbackMode = .looping
- 
+        samplerNode.setCalibrationMode(calibrationMode: .relativeSpl, level: 0)
         // Create event asset
         do {soundEventAsset = try
             phaseEngine.assetRegistry.registerSoundEventAsset(
             rootNode: samplerNode,
             identifier: audioAsset.identifier + "_SoundEventAsset")
         } catch {
-            print("Failed to register a sound event asset.")
+            logger.critical("Failed to register a sound event asset.")
             soundEventAsset = nil
         }
 
@@ -134,8 +136,7 @@ class PHASEAudioController: ObservableObject{
             case .ended:
                 if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
                     let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-                    if options.contains(.shouldResume) {
-                    }
+                    if options.contains(.shouldResume) { }
                 }
             default:
                 break
@@ -155,15 +156,18 @@ class PHASEAudioController: ObservableObject{
         soundSource = PHASESource(engine: phaseEngine, shapes: [shape])
         
         soundSource.transform = soundSourcePosition
-        print("Changing sphere")
+        
+        logger.info("Changing sphere")
         do {
             try phaseEngine.rootObject.addChild(soundSource)
         }
         catch {
+            logger.critical("Failed to add child object to root object in PHASE engine: \(error.localizedDescription)")
         }
         
         playSound()
     }
+    
     /**
             Updates sound source transformation with x,y,z position in 3D space
      */
@@ -171,6 +175,7 @@ class PHASEAudioController: ObservableObject{
         soundSourcePosition.setPosition(x:x, y:y, z:z)
         soundSource.transform = soundSourcePosition
     }
+    
     /**
             Play sound in spatial space with currently set audio settings
      */
@@ -188,13 +193,14 @@ class PHASEAudioController: ObservableObject{
         soundEvent.start(completion: nil)
     
     }
+    
     /**
          Creates audio asset with sine wave
      */
     func setAudioAssetToSine(){
         // Load sound to play (AudioAsset)
-        let data = PHASEAudioController.generateSineWave(frequency: 441.0, duration:  20.0)
-        let audioData = PHASEAudioController.convertBufferToData(buffer: data)
+        let data = generateSineWave(frequency: 441.0, duration:  20.0)
+        let audioData = convertBufferToData(buffer: data)
         let audioFormat = AVAudioFormat(standardFormatWithSampleRate: 44100.0, channels: 1)!
         do {
             audioAsset = try phaseEngine.assetRegistry.registerSoundAsset(data: audioData,
@@ -202,7 +208,7 @@ class PHASEAudioController: ObservableObject{
                                                                           format: audioFormat,
                                                                           normalizationMode: .dynamic)
         } catch {
-            print("Failed to register the sound asset: \(error.localizedDescription)")
+            logger.critical("Failed to register the sound asset: \(error.localizedDescription)")
         }
     }
     
@@ -219,70 +225,26 @@ class PHASEAudioController: ObservableObject{
                                                                               assetType: .resident,
                                                                               channelLayout: nil,
                                                                               normalizationMode: .dynamic)
-                print("Successfully registered sound asset: \(audioAsset.identifier)")
+                logger.debug("Successfully registered sound asset: \(self.audioAsset.identifier)")
             } catch {
-                print("Failed to register the sound asset: \(error.localizedDescription)")
+                logger.critical("Failed to register the sound asset: \(error.localizedDescription)")
             }
             
         } else {
-            print("Audio file 'eg_sound_short.mp3' not found in the bundle.")
+            logger.error("Audio file 'eg_sound_short.mp3' not found in the bundle.")
         }
     }
     
-//    func editModel(_ rolloffFactor: Double){
-//        let simpleModel = PHASEGeometricSpreadingDistanceModelParameters()
-//        simpleModel.rolloffFactor = rolloffFactor
-//        soundPipeline.distanceModelParameters = simpleModel
-//        
-//    }
-    
-    /**
-         Creates sine wave and saves it to AVAudiouffer
-     */
-    private static func generateSineWave(frequency: Float, duration: Float, sampleRate: Float = 44100.0) -> AVAudioPCMBuffer {
-        let totalSamples = Int(sampleRate * duration)
-        let amplitude: Float = 0.5
-
-        let audioFormat = AVAudioFormat(standardFormatWithSampleRate: Double(sampleRate), channels: 1)!
-        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: AVAudioFrameCount(totalSamples))!
-        buffer.frameLength = AVAudioFrameCount(totalSamples)
-        let samples = buffer.floatChannelData![0]
-        let angularFrequency = 2.0 * Float.pi * frequency / sampleRate
-        for i in 0..<totalSamples {
-            samples[i] = amplitude * sin(angularFrequency * Float(i))
-        }
-        
-        return buffer
-    }
-    /**
-         Transforms AVAudioBuffer to Data Type
-     */
-    static func convertBufferToData(buffer: AVAudioPCMBuffer) -> Data {
-        guard let floatChannelData = buffer.floatChannelData else {
-            fatalError("Buffer has no floatChannelData.")
-        }
-        let frameLength = Int(buffer.frameLength)
-        var audioData = Data()
-        
-        for channel in 0..<Int(buffer.format.channelCount) {
-            let channelData = floatChannelData[channel]
-            let channelBytes = UnsafeBufferPointer(start: channelData, count: frameLength)
-            audioData.append(contentsOf: UnsafeRawBufferPointer(channelBytes))
-        }
-        
-        return audioData
-    }
 
     func switchReverbProfile(_ reverbPreset: PHASEReverbPreset) {
         phaseEngine.stop()
         phaseEngine.defaultReverbPreset = reverbPreset
         do{
             try phaseEngine.start()
+            playSound()
         }
         catch {
-            print("error")
+            logger.critical("Error while playing sound: \(error.localizedDescription)")
         }
-        playSound()
-        
     }
 }

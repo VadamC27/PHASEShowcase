@@ -7,27 +7,16 @@
 
 import SwiftUI
 
-//@main
-//struct PHASEShowcaseApp: App {
-//    @StateObject private var phaseAudioController = PHASEAudioController()
-//    //ENTRY POINT
-//    var body: some Scene {
-//        WindowGroup {
-//            ContentView()
-//                .environmentObject(phaseAudioController)
-//        
-//        }
-//    }
-//}
 @main
 struct PHASEShowcaseApp: App {
+    @StateObject private var phaseAudioController = PHASEAudioController()
     //ENTRY POINT
     var body: some Scene {
         WindowGroup {
-     
-            AltContentView()
-        
+            ContentView()
+                .environmentObject(phaseAudioController)        
         }
     }
 }
+
     
